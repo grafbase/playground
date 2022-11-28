@@ -1,13 +1,12 @@
 {
   "name": "@grafbase/graphiql",
-  "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "main": "./dist",
+  "types": "./dist",
   "license": "MIT",
   "files": [
     "dist"
   ],
-  "main": "./dist",
-  "types": "./dist",
   "scripts": {
     "build": "vite build",
     "build:watch": "vite build --watch",

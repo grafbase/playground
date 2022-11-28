@@ -7,7 +7,7 @@ import { DefinitionNode, print } from 'graphql'
 import ReconnectingEventSource from 'reconnecting-eventsource'
 
 export const isLiveQuery = (
-  definition?: DefinitionNode,
+  definition?: DefinitionNode | null | undefined,
   variables?: { [key: string]: unknown }
 ) => !!definition && isLiveQueryOperationDefinitionNode(definition, variables)
 
