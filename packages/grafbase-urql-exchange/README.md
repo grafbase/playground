@@ -21,7 +21,9 @@ import { cacheExchange, createClient, dedupExchange, fetchExchange } from 'urql'
 export const client = createClient({
   url: process.env.GRAFBASE_API_URL,
   fetchOptions: {
-    headers: { 'x-api-key': process.env.GRAFBASE_API_KEY }
+    headers: {
+      authorization: `Bearer ${token}`
+    }
   },
   // Make sure `sseExchange` is put before `fetchExchange`
   exchanges: [dedupExchange, cacheExchange, sseExchange, fetchExchange]

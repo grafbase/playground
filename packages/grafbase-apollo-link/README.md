@@ -38,14 +38,14 @@ export const createApolloLink = () => {
   const sseLink = new SSELink({
     uri: process.env.GRAFBASE_API_URL,
     headers: {
-      'x-api-key': process.env.GRAFBASE_API_KEY
+      authorization: `Bearer ${token}`
     }
   })
 
   const httpLink = new HttpLink({
     uri: process.env.GRAFBASE_API_URL,
     headers: {
-      'x-api-key': process.env.GRAFBASE_API_KEY
+      authorization: `Bearer ${token}`
     }
   })
 
