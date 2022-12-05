@@ -12,10 +12,10 @@ import { useCallback } from 'react'
 import { GrafbaseLogo } from './components/grafbase-logo'
 import { Toolbar } from './components/toolbar'
 import { fetcher } from './utils/fetcher'
-import { renameTabs } from './utils/renameTabs'
+import { renameTabs } from './utils/rename-tabs'
 import { isLiveQuery, SSEProvider, useSSEContext } from './utils/sse'
 import { getStorage } from './utils/storage'
-import { validateQuery } from './utils/validateQuery'
+import { validateQuery } from './utils/validate-query'
 
 type BaseProps = {
   logo?: React.ReactNode
