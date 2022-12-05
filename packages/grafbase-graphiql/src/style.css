@@ -71,7 +71,8 @@ reach-portal {
   --border-radius-round: 9999px;
 
   /* Popover styles (tooltip, dialog, etc) */
-  --popover-box-shadow: 0px 6px 20px rgba(59, 76, 106, 0.13), 0px 1.34018px 4.46726px rgba(59, 76, 106, 0.0774939),
+  --popover-box-shadow: 0px 6px 20px rgba(59, 76, 106, 0.13),
+    0px 1.34018px 4.46726px rgba(59, 76, 106, 0.0774939),
     0px 0.399006px 1.33002px rgba(59, 76, 106, 0.0525061);
   --popover-border: none;
 
@@ -162,7 +163,7 @@ reach-portal {
     color: hsla(var(--color-neutral), 1);
     font-family: var(--font-family);
     font-size: var(--font-size-body);
-    font-weight: var(----font-weight-regular);
+    font-weight: var(--font-weight-regular);
     line-height: var(--line-height);
   }
 
@@ -184,7 +185,7 @@ reach-portal {
     }
   }
 
-  :is(.graphiql-un-styled, button.graphiql-un-styled) {
+  &:is(.graphiql-un-styled, button.graphiql-un-styled) {
     &:active {
       background-color: hsla(var(--color-base), 0);
     }
@@ -193,8 +194,8 @@ reach-portal {
     }
   }
 
-  button.graphiql-execute-button {
-    // Hide the original execute button: we use custom one to handle live queries
+  & button.graphiql-execute-button {
+    /* Hide the original execute button: we use custom one to handle live queries */
     &:first-child {
       display: none;
     }
@@ -204,19 +205,19 @@ reach-portal {
   }
 
   /* Capitalize the Tab title */
-  button.graphiql-tab-button {
+  & button.graphiql-tab-button {
     text-transform: capitalize;
   }
 
   /* Scrollbar Styles */
-  .CodeMirror-vscrollbar,
-  .CodeMirror-hscrollbar,
-  .graphiql-plugin {
-    // Firefox
+  & .CodeMirror-vscrollbar,
+  & .CodeMirror-hscrollbar,
+  & .graphiql-plugin {
+    /* Firefox */
     scrollbar-width: thin;
     scrollbar-color: hsla(var(--grafbase-bg3), 1) hsla(var(--grafbase-bg1), 1);
 
-    // Chrome, Safari, Edge, Opera
+    /* Chrome, Safari, Edge, Opera */
     &:-webkit-scrollbar {
       width: 6;
       height: 6;
@@ -235,38 +236,38 @@ reach-portal {
     }
   }
 
-  // Syntax highlighting
-  .CodeMirror {
-    .cm-keyword,
-    .cm-def {
+  /* Syntax highlighting */
+  & .CodeMirror {
+    & .cm-keyword,
+    & .cm-def {
       color: hsl(var(--grafbase-code-blue));
     }
-    .cm-ws,
-    .cm-comment,
-    .cm-punctuation {
+    & .cm-ws,
+    & .cm-comment,
+    & .cm-punctuation {
       color: hsl(var(--grafbase-code-grey));
     }
-    .cm-property {
+    & .cm-property {
       color: hsl(var(--grafbase-code-green));
     }
-    .cm-attribute {
+    & .cm-attribute {
       color: hsl(var(--grafbase-code-yellow));
     }
-    .cm-variable,
-    .cm-number,
-    .cm-string,
-    .cm-string-2,
-    .cm-builtin {
+    & .cm-variable,
+    & .cm-number,
+    & .cm-string,
+    & .cm-string-2,
+    & .cm-builtin {
       color: hsl(var(--grafbase-code-purple));
     }
-    .cm-meta {
+    & .cm-meta {
       color: hsl(var(--grafbase-code-blueLight));
       font-weight: 'bold';
     }
-    .cm-qualifier {
+    & .cm-qualifier {
       color: '#1c92a9';
     }
-    .cm-atom {
+    & .cm-atom {
       color: '#ca9800';
     }
   }

@@ -1,4 +1,4 @@
-import './style.scss'
+import './style.css'
 
 import type { Fetcher } from '@graphiql/toolkit'
 import {
@@ -8,15 +8,14 @@ import {
   GraphiQLProvider,
   GraphiQLProviderProps
 } from 'graphiql'
-import type { GraphQLSchema } from 'graphql'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback } from 'react'
 import { GrafbaseLogo } from './components/grafbase-logo'
 import { Toolbar } from './components/toolbar'
-import { getDefaultQuery } from './utils/defaultTabs'
-import { fetcher, getSchema } from './utils/fetcher'
+import { fetcher } from './utils/fetcher'
 import { renameTabs } from './utils/renameTabs'
 import { isLiveQuery, SSEProvider, useSSEContext } from './utils/sse'
 import { getStorage } from './utils/storage'
+import { validateQuery } from './utils/validateQuery'
 
 type BaseProps = {
   logo?: React.ReactNode
@@ -37,39 +36,43 @@ const Interface = (props: InterfaceProps) => {
   )
 }
 
-type ProviderProps = GraphiQLProviderProps & BaseProps
+type ProviderProps = Omit<GraphiQLProviderProps, 'children'> & BaseProps
 
 const Provider = (props: ProviderProps) => {
   const { logo, ...rest } = props
   return (
     <GraphiQLProvider
+      {...rest}
       onTabChange={(tabsState) => {
         const tabNames = tabsState.tabs.map((tab) => tab.title)
         setTimeout(() => renameTabs(tabNames), 0)
         props.onTabChange?.(tabsState)
       }}
-      {...rest}
     >
       <Interface isHeadersEditorEnabled={false} logo={logo} />
     </GraphiQLProvider>
   )
 }
 
-type PlaygroundProps = GraphiQLProviderProps &
-  BaseProps & {
-    storageKey?: string
-    endpoint?: string
-    headers?: Record<string, string> | undefined
-  }
+type PlaygroundProps = Omit<ProviderProps, 'fetcher' | 'storage'> & {
+  endpoint: string
+  storageKey?: string
+}
 
 const Playground = (props: PlaygroundProps) => {
-  const { storageKey = 'grafbase', endpoint, headers, ...rest } = props
-  const [schema, setSchema] = useState<GraphQLSchema>()
-  const [defaultQuery, setDefaultQuery] = useState('')
+  const { storageKey = 'grafbase', endpoint, ...rest } = props
   const { sseFetcher } = useSSEContext()
+
+  const headers: Record<string, string> | undefined = props.headers
+    ? JSON.parse(props.headers)
+    : undefined
 
   const getFetcher = useCallback<Fetcher>(
     (graphQLParams, fetcherOpts) => {
+      const isExecutable = validateQuery(graphQLParams.query)
+      if (!isExecutable) {
+        return Promise.reject('Query is not executable')
+      }
       const isLive = fetcherOpts?.documentAST
         ? isLiveQuery(
             fetcherOpts.documentAST,
@@ -90,34 +93,8 @@ const Playground = (props: PlaygroundProps) => {
     [endpoint, headers, sseFetcher]
   )
 
-  useEffect(() => {
-    if (!endpoint || !!schema) return
-    const getTabsData = async () => {
-      const newSchema = await getSchema(fetcher(endpoint, { headers }))
-      if (newSchema) {
-        setSchema(newSchema)
-        const query = await getDefaultQuery(newSchema, storageKey)
-        setDefaultQuery(query)
-      }
-    }
-    getTabsData()
-  }, [endpoint, schema])
-
-  // wait for tabs data to be ready
-  if (endpoint && !(schema && defaultQuery)) return null
-
-  if (!endpoint) {
-    return <Provider {...rest} />
-  }
-
   return (
-    <Provider
-      {...rest}
-      fetcher={getFetcher}
-      schema={schema}
-      defaultQuery={defaultQuery}
-      storage={getStorage(storageKey)}
-    />
+    <Provider {...rest} fetcher={getFetcher} storage={getStorage(storageKey)} />
   )
 }
 
