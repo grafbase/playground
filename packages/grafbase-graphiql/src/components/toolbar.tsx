@@ -6,9 +6,9 @@ import {
   useCopyQuery,
   useEditorContext
 } from '@graphiql/react'
-import { useKeyMap } from '../hooks/useKeyMap'
-import { useMergeQuery } from '../hooks/useMergeQuery'
-import { usePrettifyEditors } from '../hooks/usePrettifyEditors'
+import { useKeyMap } from '../hooks/use-key-map'
+import { useMergeQuery } from '../hooks/use-merge-query'
+import { usePrettifyEditors } from '../hooks/use-prettify-editors'
 import ExecuteButton from './execute-button'
 
 export const Toolbar = () => {
