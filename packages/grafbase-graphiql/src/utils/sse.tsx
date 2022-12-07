@@ -86,19 +86,23 @@ export const SSEProvider = ({ children }: { children?: ReactNode }) => {
     setStatus('CONNECTING')
     const eventSource = new ReconnectingEventSource(url)
     return applyLiveQueryJSONPatch(
-      new Repeater<ExecutionResult>(async (push, end) => {
+      new Repeater<ExecutionResult>(async (push, stop) => {
         eventSource.onmessage = (event) => {
           setStatus('OPEN')
           const data = JSON.parse(event.data)
           push(data)
-          if (eventSource.readyState === 2) {
-            end()
+          if (eventSource.readyState === EventSource.CLOSED) {
+            stop()
           }
         }
         eventSource.onerror = (error) => {
-          end(error)
+          if (error.isTrusted) {
+            stop(new Error('NetworkError: browser closed the connection'))
+          } else {
+            stop(error)
+          }
         }
-        await end
+        await stop
         eventSource.close()
         setStatus('CLOSED')
       })
