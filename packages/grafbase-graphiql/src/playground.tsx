@@ -8,7 +8,7 @@ import {
   GraphiQLProvider,
   GraphiQLProviderProps
 } from 'graphiql'
-import { useCallback } from 'react'
+import { ReactNode, useCallback } from 'react'
 import { GrafbaseLogo } from './components/grafbase-logo'
 import { Toolbar } from './components/toolbar'
 import { fetcher } from './utils/fetcher'
@@ -17,58 +17,54 @@ import { isLiveQuery, SSEProvider, useSSEContext } from './utils/sse'
 import { getStorage } from './utils/storage'
 import { validateQuery } from './utils/validate-query'
 
-type BaseProps = {
-  logo?: React.ReactNode
-}
+type PlaygroundProps = Omit<
+  GraphiQLProviderProps,
+  'children' | 'fetcher' | 'storage'
+> &
+  GraphiQLInterfaceProps & {
+    endpoint: string
+    storageKey?: string
+    logo?: ReactNode
+  }
 
-type InterfaceProps = GraphiQLInterfaceProps & BaseProps
-
-const Interface = (props: InterfaceProps) => {
-  const { logo, ...rest } = props
-
-  return (
-    <GraphiQLInterface {...rest}>
-      <GraphiQL.Logo>{logo ?? <GrafbaseLogo />}</GraphiQL.Logo>
-      <GraphiQL.Toolbar>
-        <Toolbar />
-      </GraphiQL.Toolbar>
-    </GraphiQLInterface>
-  )
-}
-
-type ProviderProps = Omit<GraphiQLProviderProps, 'children'> & BaseProps
-
-const Provider = (props: ProviderProps) => {
-  const { logo, ...rest } = props
-  return (
-    <GraphiQLProvider
-      {...rest}
-      onTabChange={(tabsState) => {
-        const tabNames = tabsState.tabs.map((tab) => tab.title)
-        setTimeout(() => renameTabs(tabNames), 0)
-        props.onTabChange?.(tabsState)
-      }}
-    >
-      <Interface isHeadersEditorEnabled={false} logo={logo} />
-    </GraphiQLProvider>
-  )
-}
-
-type PlaygroundProps = Omit<ProviderProps, 'fetcher' | 'storage'> & {
-  endpoint: string
-  storageKey?: string
-}
-
-const Playground = (props: PlaygroundProps) => {
-  const { storageKey = 'grafbase', endpoint, ...rest } = props
+const Playground = ({
+  storageKey = 'grafbase',
+  endpoint,
+  logo,
+  dangerouslyAssumeSchemaIsValid,
+  defaultQuery,
+  defaultTabs,
+  externalFragments,
+  getDefaultFieldNames,
+  headers,
+  initialTabs,
+  inputValueDeprecation,
+  introspectionQueryName,
+  maxHistoryLength,
+  onEditOperationName,
+  onSchemaChange,
+  onTabChange,
+  onTogglePluginVisibility,
+  operationName,
+  plugins,
+  query,
+  response,
+  schema,
+  schemaDescription,
+  shouldPersistHeaders,
+  validationRules,
+  variables,
+  visiblePlugin,
+  defaultHeaders,
+  ...props
+}: PlaygroundProps) => {
   const { sseFetcher } = useSSEContext()
-
-  const headers: Record<string, string> | undefined = props.headers
-    ? JSON.parse(props.headers)
-    : undefined
 
   const getFetcher = useCallback<Fetcher>(
     (graphQLParams, fetcherOpts) => {
+      const _headers: Record<string, string> | undefined = headers
+        ? JSON.parse(headers)
+        : undefined
       const isExecutable = validateQuery(graphQLParams.query)
       if (!isExecutable) {
         return Promise.reject('Query is not executable')
@@ -80,12 +76,12 @@ const Playground = (props: PlaygroundProps) => {
           )
         : false
       if (isLive) {
-        return sseFetcher({ url: endpoint as string, headers })(
+        return sseFetcher({ url: endpoint as string, headers: _headers })(
           graphQLParams,
           fetcherOpts
         )
       }
-      return fetcher(endpoint as string, { headers })(
+      return fetcher(endpoint as string, { headers: _headers })(
         graphQLParams,
         fetcherOpts
       )
@@ -94,7 +90,50 @@ const Playground = (props: PlaygroundProps) => {
   )
 
   return (
-    <Provider {...rest} fetcher={getFetcher} storage={getStorage(storageKey)} />
+    <GraphiQLProvider
+      fetcher={getFetcher}
+      storage={getStorage(storageKey)}
+      onTabChange={(tabsState) => {
+        const tabNames = tabsState.tabs.map((tab) => tab.title)
+        setTimeout(() => renameTabs(tabNames), 0)
+        onTabChange?.(tabsState)
+      }}
+      getDefaultFieldNames={getDefaultFieldNames}
+      dangerouslyAssumeSchemaIsValid={dangerouslyAssumeSchemaIsValid}
+      defaultQuery={defaultQuery}
+      defaultHeaders={defaultHeaders}
+      defaultTabs={defaultTabs}
+      externalFragments={externalFragments}
+      headers={headers}
+      initialTabs={initialTabs}
+      inputValueDeprecation={inputValueDeprecation}
+      introspectionQueryName={introspectionQueryName}
+      maxHistoryLength={maxHistoryLength}
+      onEditOperationName={onEditOperationName}
+      onSchemaChange={onSchemaChange}
+      onTogglePluginVisibility={onTogglePluginVisibility}
+      plugins={plugins}
+      visiblePlugin={visiblePlugin}
+      operationName={operationName}
+      query={query}
+      response={response}
+      schema={schema}
+      schemaDescription={schemaDescription}
+      shouldPersistHeaders={shouldPersistHeaders}
+      validationRules={validationRules}
+      variables={variables}
+    >
+      <GraphiQLInterface
+        isHeadersEditorEnabled={false}
+        defaultEditorToolsVisibility={false}
+        {...props}
+      >
+        <GraphiQL.Logo>{logo ?? <GrafbaseLogo />}</GraphiQL.Logo>
+        <GraphiQL.Toolbar>
+          <Toolbar />
+        </GraphiQL.Toolbar>
+      </GraphiQLInterface>
+    </GraphiQLProvider>
   )
 }
 
