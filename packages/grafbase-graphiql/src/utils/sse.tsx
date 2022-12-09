@@ -56,9 +56,7 @@ export const getSseFetcher = (options: SSEFetcherOptions) => {
     const sseClient = options.sseClient(url)
 
     return makeAsyncIterableIteratorFromSink<ExecutionResult>((sink) =>
-      applyAsyncIterableIteratorToSink(sseClient, {
-        ...sink
-      })
+      applyAsyncIterableIteratorToSink(applyLiveQueryJSONPatch(sseClient), sink)
     )
   }
 }
@@ -84,25 +82,26 @@ export const SSEProvider = ({ children }: { children?: ReactNode }) => {
    */
   const sseClient = (url: string) => {
     setStatus('CONNECTING')
-    const eventSource = new ReconnectingEventSource(url)
-    return applyLiveQueryJSONPatch(
-      new Repeater<ExecutionResult>(async (push, end) => {
-        eventSource.onmessage = (event) => {
-          setStatus('OPEN')
-          const data = JSON.parse(event.data)
-          push(data)
-          if (eventSource.readyState === 2) {
-            end()
-          }
+    return new Repeater<ExecutionResult>(async (push, stop) => {
+      const eventSource = new ReconnectingEventSource(url)
+      eventSource.onmessage = (event) => {
+        setStatus('OPEN')
+        push(JSON.parse(event.data))
+        if (eventSource.readyState === EventSource.CLOSED) {
+          stop()
         }
-        eventSource.onerror = (error) => {
-          end(error)
+      }
+      eventSource.onerror = (error) => {
+        if (error.isTrusted) {
+          stop('NetworkError: browser closed the connection')
+        } else {
+          stop(error)
         }
-        await end
-        eventSource.close()
-        setStatus('CLOSED')
-      })
-    )
+      }
+      await stop
+      eventSource.close()
+      setStatus('CLOSED')
+    })
   }
 
   const sseFetcher: SSEFetcherType = ({ url, headers }) =>
