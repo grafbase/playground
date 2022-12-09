@@ -27,43 +27,44 @@ type PlaygroundProps = Omit<
     logo?: ReactNode
   }
 
-const Playground = ({
-  storageKey = 'grafbase',
-  endpoint,
-  logo,
-  dangerouslyAssumeSchemaIsValid,
-  defaultQuery,
-  defaultTabs,
-  externalFragments,
-  getDefaultFieldNames,
-  headers,
-  initialTabs,
-  inputValueDeprecation,
-  introspectionQueryName,
-  maxHistoryLength,
-  onEditOperationName,
-  onSchemaChange,
-  onTabChange,
-  onTogglePluginVisibility,
-  operationName,
-  plugins,
-  query,
-  response,
-  schema,
-  schemaDescription,
-  shouldPersistHeaders,
-  validationRules,
-  variables,
-  visiblePlugin,
-  defaultHeaders,
-  ...props
-}: PlaygroundProps) => {
+const Playground = (props: PlaygroundProps) => {
+  const {
+    storageKey = 'grafbase',
+    endpoint,
+    logo,
+    dangerouslyAssumeSchemaIsValid,
+    defaultQuery,
+    defaultTabs,
+    externalFragments,
+    getDefaultFieldNames,
+    headers,
+    initialTabs,
+    inputValueDeprecation,
+    introspectionQueryName,
+    maxHistoryLength,
+    onEditOperationName,
+    onSchemaChange,
+    onTabChange,
+    onTogglePluginVisibility,
+    operationName,
+    plugins,
+    query,
+    response,
+    schema,
+    schemaDescription,
+    shouldPersistHeaders,
+    validationRules,
+    variables,
+    visiblePlugin,
+    defaultHeaders,
+    ...rest
+  } = props
   const { sseFetcher } = useSSEContext()
 
   const getFetcher = useCallback<Fetcher>(
     (graphQLParams, fetcherOpts) => {
-      const _headers: Record<string, string> | undefined = headers
-        ? JSON.parse(headers)
+      const headers: Record<string, string> | undefined = props.headers
+        ? JSON.parse(props.headers)
         : undefined
       const isExecutable = validateQuery(graphQLParams.query)
       if (!isExecutable) {
@@ -76,17 +77,17 @@ const Playground = ({
           )
         : false
       if (isLive) {
-        return sseFetcher({ url: endpoint as string, headers: _headers })(
+        return sseFetcher({ url: endpoint as string, headers })(
           graphQLParams,
           fetcherOpts
         )
       }
-      return fetcher(endpoint as string, { headers: _headers })(
+      return fetcher(endpoint as string, { headers })(
         graphQLParams,
         fetcherOpts
       )
     },
-    [endpoint, headers, sseFetcher]
+    [endpoint, props.headers, sseFetcher]
   )
 
   return (
@@ -126,7 +127,7 @@ const Playground = ({
       <GraphiQLInterface
         isHeadersEditorEnabled={false}
         defaultEditorToolsVisibility={false}
-        {...props}
+        {...rest}
       >
         <GraphiQL.Logo>{logo ?? <GrafbaseLogo />}</GraphiQL.Logo>
         <GraphiQL.Toolbar>
