@@ -86,8 +86,7 @@ export const SSEProvider = ({ children }: { children?: ReactNode }) => {
       const eventSource = new ReconnectingEventSource(url)
       eventSource.onmessage = (event) => {
         setStatus('OPEN')
-        const data = JSON.parse(event.data)
-        push(data)
+        push(JSON.parse(event.data))
         if (eventSource.readyState === EventSource.CLOSED) {
           stop()
         }
