@@ -1,5 +1,12 @@
 # @grafbase/graphiql
 
+## 2.0.1
+
+### Patch Changes
+
+- 7220f47: - fix(playground): pass GraphiQLInterface props
+  - fix(sse): add custom error message
+
 ## 2.0.0
 
 ### Major Changes
