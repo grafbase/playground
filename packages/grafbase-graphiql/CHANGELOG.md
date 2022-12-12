@@ -1,5 +1,14 @@
 # @grafbase/graphiql
 
+## 2.0.2
+
+### Patch Changes
+
+- 24c9313: Minor fixes:
+
+  - replace `headers` prop with `defaultHeaders`
+  - add `statusCallback` to SSE client
+
 ## 2.0.1
 
 ### Patch Changes
