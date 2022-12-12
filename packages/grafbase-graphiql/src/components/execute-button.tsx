@@ -4,13 +4,13 @@ import {
   ToolbarButton,
   useExecutionContext
 } from '@graphiql/react'
-import { useSSEContext } from '../utils/sse'
+import { SSEStatus, useSSEContext } from '../utils/sse'
 
 const ExecuteButton = () => {
   const { isFetching, run, stop } = useExecutionContext({ nonNull: true })
   const stream = useSSEContext()
 
-  const fetching = isFetching || stream.status === 'OPEN'
+  const fetching = isFetching || stream.status === SSEStatus.OPEN
   const label = `${fetching ? 'Stop' : 'Execute'} query (Ctrl-Enter)`
 
   const onClick = () => {
@@ -21,7 +21,7 @@ const ExecuteButton = () => {
     }
   }
 
-  if (stream.status !== 'CLOSED') {
+  if (stream.status !== SSEStatus.CLOSED) {
     return (
       <ToolbarButton
         type="button"

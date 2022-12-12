@@ -10,7 +10,7 @@ import { DocumentNode, getOperationAST, GraphQLError } from 'graphql'
 import { createContext, ReactNode, useContext, useState } from 'react'
 import ReconnectingEventSource from 'reconnecting-eventsource'
 
-enum SSEStatus {
+export enum SSEStatus {
   CLOSED = 'CLOSED',
   OPEN = 'OPEN',
   CONNECTING = 'CONNECTING'
