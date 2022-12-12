@@ -63,8 +63,8 @@ const Playground = (props: PlaygroundProps) => {
 
   const getFetcher = useCallback<Fetcher>(
     (graphQLParams, fetcherOpts) => {
-      const headers: Record<string, string> | undefined = props.headers
-        ? JSON.parse(props.headers)
+      const headers: Record<string, string> | undefined = props.defaultHeaders
+        ? JSON.parse(props.defaultHeaders)
         : undefined
       const isExecutable = validateQuery(graphQLParams.query)
       if (!isExecutable) {
@@ -87,7 +87,7 @@ const Playground = (props: PlaygroundProps) => {
         fetcherOpts
       )
     },
-    [endpoint, props.headers, sseFetcher]
+    [endpoint, props.defaultHeaders, sseFetcher]
   )
 
   return (
