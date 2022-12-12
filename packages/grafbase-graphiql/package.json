@@ -31,7 +31,7 @@
     "react-dom": "18.2.0",
     "tsconfig": "workspace:*",
     "tsup": "6.5.0",
-    "typescript": "4.9.3"
+    "typescript": "4.9.4"
   },
   "dependencies": {
     "@graphiql/react": "^0.15.0",
