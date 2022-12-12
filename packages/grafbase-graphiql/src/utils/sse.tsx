@@ -1,4 +1,4 @@
-import type { Fetcher, FetcherParams, FetcherResult } from '@graphiql/toolkit'
+import type { Fetcher, FetcherParams } from '@graphiql/toolkit'
 import { isLiveQueryOperationDefinitionNode } from '@n1ru4l/graphql-live-query'
 import { applyLiveQueryJSONPatch } from '@n1ru4l/graphql-live-query-patch-json-patch'
 import {
@@ -6,12 +6,37 @@ import {
   makeAsyncIterableIteratorFromSink
 } from '@n1ru4l/push-pull-async-iterable-iterator'
 import { Repeater } from '@repeaterjs/repeater'
-import { DocumentNode, getOperationAST } from 'graphql'
+import { DocumentNode, getOperationAST, GraphQLError } from 'graphql'
 import { createContext, ReactNode, useContext, useState } from 'react'
 import ReconnectingEventSource from 'reconnecting-eventsource'
 
-type ExecutionResult = Extract<FetcherResult, { hasNext?: boolean }>
-type SSEClient = (url: string) => Repeater<ExecutionResult, any, unknown>
+enum SSEStatus {
+  CLOSED = 'CLOSED',
+  OPEN = 'OPEN',
+  CONNECTING = 'CONNECTING'
+}
+
+type FetcherOptions = {
+  url: string
+  headers?: Record<string, string> | undefined
+}
+type SSEFetcherOptions = FetcherOptions & {
+  statusCallback?: (status: SSEStatus) => void
+}
+
+interface ExecutionResult<
+  Data = Record<string, unknown>,
+  Extensions = Record<string, unknown>
+> {
+  errors?: ReadonlyArray<GraphQLError>
+  data?: Data | null
+  hasNext?: boolean
+  extensions?: Extensions
+}
+type SSEClient = (args: {
+  url: string
+  statusCallback?: (status: SSEStatus) => void
+}) => Repeater<ExecutionResult, any, unknown>
 
 export const isLiveQuery = (
   document: DocumentNode,
@@ -23,16 +48,34 @@ export const isLiveQuery = (
     : false
 }
 
-type FetcherOptions = {
-  url: string
-  headers?: Record<string, string> | undefined
+const sseClient: SSEClient = ({ url, statusCallback }) => {
+  return new Repeater(async (push, stop) => {
+    statusCallback?.(SSEStatus.CONNECTING)
+    const eventSource = new ReconnectingEventSource(url)
+    eventSource.onmessage = (event) => {
+      statusCallback?.(SSEStatus.OPEN)
+      push(JSON.parse(event.data))
+      if (eventSource.readyState === EventSource.CLOSED) {
+        stop()
+      }
+    }
+    eventSource.onerror = (error) => {
+      if (error.isTrusted) {
+        stop('NetworkError: browser closed the connection')
+      } else {
+        stop(error)
+      }
+    }
+    await stop
+    eventSource.close()
+    statusCallback?.(SSEStatus.CLOSED)
+  })
 }
 
-type SSEFetcherOptions = FetcherOptions & {
-  sseClient: SSEClient
-}
-
-export const getSseFetcher = (options: SSEFetcherOptions) => {
+export const getSseFetcher = ({
+  statusCallback,
+  ...options
+}: SSEFetcherOptions) => {
   return (graphQLParams: FetcherParams) => {
     const headers = Object.entries(options.headers || {}).reduce(
       (accumulator, [key, value]) => {
@@ -53,59 +96,29 @@ export const getSseFetcher = (options: SSEFetcherOptions) => {
       variables: JSON.stringify(graphQLParams.variables || {})
     })
     const url = `${options.url}?${searchParams.toString()}`
-    const sseClient = options.sseClient(url)
+    const client = sseClient({ url, statusCallback })
 
     return makeAsyncIterableIteratorFromSink<ExecutionResult>((sink) =>
-      applyAsyncIterableIteratorToSink(applyLiveQueryJSONPatch(sseClient), sink)
+      applyAsyncIterableIteratorToSink(applyLiveQueryJSONPatch(client), sink)
     )
   }
 }
-
-type Status = 'OPEN' | 'CONNECTING' | 'CLOSED'
 
 type SSEFetcherType = (options: FetcherOptions) => Fetcher
 
 type SSEContextType = {
   sseFetcher: SSEFetcherType
-  status: Status
+  status: SSEStatus
 }
 
 const SSEContext = createContext<SSEContextType | null>(null)
 SSEContext.displayName = 'SSEContext'
 
 export const SSEProvider = ({ children }: { children?: ReactNode }) => {
-  const [status, setStatus] = useState<Status>('CLOSED')
-
-  /**
-   * sseClient can be used as a base for our own lib to handle the sse connection.
-   * @notrab suggested to create a lib to help users to adopt live queries in their apps and create plugins for Apollo, Relay, urql, etc.
-   */
-  const sseClient = (url: string) => {
-    setStatus('CONNECTING')
-    return new Repeater<ExecutionResult>(async (push, stop) => {
-      const eventSource = new ReconnectingEventSource(url)
-      eventSource.onmessage = (event) => {
-        setStatus('OPEN')
-        push(JSON.parse(event.data))
-        if (eventSource.readyState === EventSource.CLOSED) {
-          stop()
-        }
-      }
-      eventSource.onerror = (error) => {
-        if (error.isTrusted) {
-          stop('NetworkError: browser closed the connection')
-        } else {
-          stop(error)
-        }
-      }
-      await stop
-      eventSource.close()
-      setStatus('CLOSED')
-    })
-  }
+  const [status, setStatus] = useState<SSEStatus>(SSEStatus.CLOSED)
 
   const sseFetcher: SSEFetcherType = ({ url, headers }) =>
-    getSseFetcher({ url, headers, sseClient })
+    getSseFetcher({ url, headers, statusCallback: setStatus })
 
   return (
     <SSEContext.Provider value={{ sseFetcher, status }}>
