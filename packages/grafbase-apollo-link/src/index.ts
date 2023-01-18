@@ -39,11 +39,13 @@ export class SSELink extends ApolloLink {
   }
 
   public request(operation: Operation): Observable<FetchResult> {
+    const { headers: contextHeaders = {} } = operation.getContext();
     const headers = Object.entries(this.options.headers ?? {}).reduce(
       (headers, [key, value]) => ({ ...headers, [key]: value }),
       {} as Record<string, string>
     )
     const searchParams = new URLSearchParams({
+      ...contextHeaders,
       ...headers,
       query: print(operation.query),
       operationName: operation.operationName || '',
