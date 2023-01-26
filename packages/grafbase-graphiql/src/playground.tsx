@@ -1,13 +1,9 @@
 import './style.css'
 
+import type { Theme } from '@graphiql/react'
 import type { Fetcher } from '@graphiql/toolkit'
-import {
-  GraphiQL,
-  GraphiQLInterface,
-  GraphiQLInterfaceProps,
-  GraphiQLProvider,
-  GraphiQLProviderProps
-} from 'graphiql'
+import type { GraphiQLInterfaceProps, GraphiQLProviderProps } from 'graphiql'
+import { GraphiQL, GraphiQLInterface, GraphiQLProvider } from 'graphiql'
 import { ReactNode, useCallback } from 'react'
 import { GrafbaseLogo } from './components/grafbase-logo'
 import { Toolbar } from './components/toolbar'
@@ -15,6 +11,7 @@ import { fetcher } from './utils/fetcher'
 import { renameTabs } from './utils/rename-tabs'
 import { isLiveQuery, SSEProvider, useSSEContext } from './utils/sse'
 import { getStorage } from './utils/storage'
+import { ThemeProvider } from './utils/theme'
 import { validateQuery } from './utils/validate-query'
 
 type PlaygroundProps = Omit<
@@ -138,11 +135,17 @@ const Playground = (props: PlaygroundProps) => {
   )
 }
 
-const PlaygroundWithProviders = (props: PlaygroundProps) => {
+type Props = PlaygroundProps & {
+  theme?: Theme
+}
+
+const PlaygroundWithProviders = ({ theme, ...props }: Props) => {
   return (
-    <SSEProvider>
-      <Playground {...props} />
-    </SSEProvider>
+    <ThemeProvider theme={theme}>
+      <SSEProvider>
+        <Playground {...props} />
+      </SSEProvider>
+    </ThemeProvider>
   )
 }
 
