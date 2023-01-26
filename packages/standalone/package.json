@@ -1,9 +1,9 @@
 {
   "name": "standalone",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@grafbase/graphiql": "2.1.0",
+    "@grafbase/graphiql": "2.0.2",
     "bfj": "^7.0.2",
     "fs-extra": "^10.0.0",
     "graphql": "^16.6.0",
