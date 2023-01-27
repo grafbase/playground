@@ -1,5 +1,11 @@
 # @grafbase/graphiql
 
+## 2.1.0
+
+### Minor Changes
+
+- ef49d14: add theme prop
+
 ## 2.0.2
 
 ### Patch Changes
