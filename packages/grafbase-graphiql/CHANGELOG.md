@@ -4,7 +4,7 @@
 
 ### Minor Changes
 
-- cd1e42e: add theme prop
+- ef49d14: add theme prop
 
 ## 2.0.2
 
