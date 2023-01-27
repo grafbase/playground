@@ -15,7 +15,7 @@
     "release": "turbo run build lint && changeset version && changeset publish"
   },
   "devDependencies": {
-    "@changesets/cli": "2.25.2",
+    "@changesets/cli": "2.26.0",
     "eslint-config-custom": "workspace:*",
     "prettier": "latest",
     "turbo": "latest"
@@ -23,5 +23,5 @@
   "engines": {
     "node": ">=14.0.0"
   },
-  "packageManager": "pnpm@7.18.1"
+  "packageManager": "pnpm@7.26.1"
 }
